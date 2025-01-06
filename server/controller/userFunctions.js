@@ -1,6 +1,6 @@
 import ProfileModel from '../models/ProfileModel.js';
 import AdminModel from '../models/AdminModel.js';
-import UserModel from '../models/UserModel.js';
+import bcrypt from 'bcrypt';
 
 // Get Profile
 const getProfile = async (req, res) => {
@@ -42,73 +42,52 @@ const getAllpatient = async (req, res) => {
 };
 
 // Get All Doctors
-const getAlldoctores = async (req, res) => {
-  try {
-    const doctors = await ProfileModel.getUsersByAccountType('doctor');
-    if (doctors.length === 0) {
-      return res.status(404).json({ msg: 'No doctor found' });
-    }
-    res.status(200).json(doctors);
-  } catch (err) {
-    res.status(500).json({ msg: 'Internal server error' });
-  }
-};
+// const getAlldoctores = async (req, res) => {
+//   try {
+//     const doctors = await ProfileModel.getUsersByAccountType('doctor');
+//     if (doctors.length === 0) {
+//       return res.status(404).json({ msg: 'No doctor found' });
+//     }
+//     res.status(200).json(doctors);
+//   } catch (err) {
+//     res.status(500).json({ msg: 'Internal server error' });
+//   }
+// };
 
 // Update Profile
 const updateProfile = async (req, res) => {
-    try {
-      const { username, email, profileData, addresses, workingHours, languages, mutuelles, profileImage } = req.body;
+  try {
+      const { profileData, addresses, workingHours, languages, mutuelles, profileImage } = req.body;
       const userId = req.params.userId;
-  
-      // Validate required fields
-      if (!username || !email) {
-        return res.status(400).json({ msg: 'Username and email are required' });
+
+      // Validate profileData
+      if (!profileData || typeof profileData !== 'object') {
+          return res.status(400).json({ msg: 'Invalid profile data' });
       }
-  
+
       // Update the user profile
       const affectedRows = await ProfileModel.updateUserProfile(
-        userId,
-        username,
-        email,
-        profileData,
-        addresses,
-        workingHours,
-        languages,
-        mutuelles,
-        profileImage
+          userId,
+          profileData,
+          addresses,
+          workingHours,
+          languages,
+          mutuelles,
+          profileImage
       );
-  
+
       if (affectedRows === 0) {
-        return res.status(404).json({ msg: 'User not found' });
+          return res.status(404).json({ msg: 'User not found' });
       }
-  
+
       res.status(200).json({ msg: 'Profile updated successfully' });
-    } catch (err) {
+  } catch (err) {
       console.error('Error updating profile:', err); // Log the error
       res.status(500).json({ msg: 'Internal server error', error: err.message });
-    }
-  };
-
-// Update Other Profile (Admin Only)
-const updateOtherProfile = async (req, res) => {
-  try {
-    const { adminId, username, email, password_hash } = req.body;
-    const isAdmin = await AdminModel.isAdmin(adminId);
-    if (!isAdmin) {
-      return res.status(401).json({ msg: 'Unauthorized: Not authorized to perform this operation' });
-    }
-    
-    
-   
-    const affectedRows = await ProfileModel.updateUserProfile(req.params.userId, username, email, password_hash);
-    if (affectedRows === 0) {
-      return res.status(404).json({ msg: 'User not found' });
-    }
-    res.status(200).json({ msg: 'Profile updated successfully' });
-  } catch (err) {
-    res.status(500).json({ msg: 'Internal server error' });
   }
 };
+
+
 
 // Delete Profile
 const deleteProfile = async (req, res) => {
@@ -123,59 +102,9 @@ const deleteProfile = async (req, res) => {
   }
 };
 
-// Delete Other Profile (Admin Only)
-const deleteOtherProfile = async (req, res) => {
-  try {
-    const { adminId } = req.body;
-    const isAdmin = await AdminModel.isAdmin(adminId);
-    if (!isAdmin) {
-      return res.status(401).json({ msg: 'Unauthorized: Not authorized to perform this operation' });
-    }
-    const affectedRows = await ProfileModel.deleteUserById(req.params.userId);
-    if (affectedRows === 0) {
-      return res.status(404).json({ msg: 'User not found' });
-    }
-    res.status(200).json({ msg: 'Profile deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ msg: 'Internal server error' });
-  }
-};
 
-// Suspend User
-const suspendUser = async (req, res) => {
-  try {
-    const { adminId, userId, suspensionReason } = req.body;
-    const isAdmin = await AdminModel.isAdmin(adminId);
-    if (!isAdmin) {
-      return res.status(401).json({ msg: 'Unauthorized: Only admins can suspend users' });
-    }
-    const affectedRows = await ProfileModel.suspendUser(userId, suspensionReason);
-    if (affectedRows === 0) {
-      return res.status(404).json({ msg: 'User not found' });
-    }
-    res.status(200).json({ msg: 'User suspended successfully' });
-  } catch (err) {
-    res.status(500).json({ msg: 'Internal server error' });
-  }
-};
 
-// Unsuspend User
-const unsuspendUser = async (req, res) => {
-  try {
-    const { adminId, userId } = req.body;
-    const isAdmin = await AdminModel.isAdmin(adminId);
-    if (!isAdmin) {
-      return res.status(401).json({ msg: 'Unauthorized: Only admins can unsuspend users' });
-    }
-    const affectedRows = await ProfileModel.unsuspendUser(userId);
-    if (affectedRows === 0) {
-      return res.status(404).json({ msg: 'User not found' });
-    }
-    res.status(200).json({ msg: 'User unsuspended successfully' });
-  } catch (err) {
-    res.status(500).json({ msg: 'Internal server error' });
-  }
-};
+
 
 // Search Users
 const searchUsers = async (req, res) => {
@@ -191,16 +120,61 @@ const searchUsers = async (req, res) => {
   }
 };
 
+
+//change password
+const changePassword = async (req, res) => {
+  try {
+      const { oldPassword, newPassword, confirmNewPassword } = req.body;
+      const userId = req.params.userId;
+
+      // Validate inputs
+      if (!oldPassword || !newPassword || !confirmNewPassword) {
+          return res.status(400).json({ msg: 'All fields are required' });
+      }
+
+      if (newPassword !== confirmNewPassword) {
+          return res.status(400).json({ msg: 'New passwords do not match' });
+      }
+
+      if (newPassword.length < 6) {
+          return res.status(400).json({ msg: 'New password must be at least 6 characters long' });
+      }
+
+      // Fetch the user's current password hash
+      const [user] = await ProfileModel.getUser(userId);
+      if (!user) {
+          return res.status(404).json({ msg: 'User not found' });
+      }
+
+      // Verify the old password
+      const isMatch = await bcrypt.compare(oldPassword, user.password_hash);
+      if (!isMatch) {
+          return res.status(400).json({ msg: 'Old password is incorrect' });
+      }
+
+      // Hash the new password
+      const saltRounds = 10;
+      const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
+
+      // Update the password in the database
+      await ProfileModel.updatePassword(userId, newPasswordHash);
+
+      res.status(200).json({ msg: 'Password updated successfully' });
+  } catch (err) {
+      console.error('Error changing password:', err);
+      res.status(500).json({ msg: 'Internal server error', error: err.message });
+  }
+};
+
+ 
+
+
 export default {
   getProfile,
   getUser,
   getAllpatient,
-  getAlldoctores,
   updateProfile,
-  updateOtherProfile,
   deleteProfile,
-  deleteOtherProfile,
   searchUsers,
-  suspendUser,
-  unsuspendUser,
+  changePassword,
 };

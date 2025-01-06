@@ -6,17 +6,14 @@ import userController from '../controller/userFunctions.js';
 router.get('/profile/:userId', userController.getProfile);
 router.put('/profile/:userId', userController.updateProfile);
 router.delete('/profile/:userId', userController.deleteProfile);
+router.put('/profile/password/:userId', userController.changePassword);
 
-// Admin Routes
-router.put('/profile/admin/:userId', userController.updateOtherProfile);
-router.delete('/profile/admin/:userId', userController.deleteOtherProfile);
 
 // User Routes
 router.get('/user/:userId', userController.getUser);
 router.get('/patients', userController.getAllpatient); 
-router.get('/doctors', userController.getAlldoctores);
+// router.get('/doctors', userController.getAlldoctores);
 router.get('/search', userController.searchUsers);
-router.post('/user/suspend', userController.suspendUser);
-router.post('/user/unsuspend',userController. unsuspendUser);
+
 
 export default  router;

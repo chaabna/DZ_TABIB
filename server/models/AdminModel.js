@@ -8,4 +8,5 @@ class AdminModel {
   }
 }
 
+
 export default AdminModel;

@@ -5,6 +5,8 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/routerAuth.js';
 import userRoutes from './routes/userRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import doctorRoutes from './routes/doctorRoutes.js';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -15,7 +17,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/auth', authRoutes);
-app.use('/api', userRoutes)
+app.use('/api', userRoutes);
+app.use('/api', adminRoutes);
+app.use('/api', doctorRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
