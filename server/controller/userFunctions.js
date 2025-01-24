@@ -57,33 +57,47 @@ const getAllpatient = async (req, res) => {
 // Update Profile
 const updateProfile = async (req, res) => {
   try {
-      const { profileData, addresses, workingHours, languages, mutuelles, profileImage } = req.body;
-      const userId = req.params.userId;
+    const { profileData, addresses, workingHours, languages, mutuelles, profileImage } = req.body;
+    const userId = req.params.userId;
 
-      // Validate profileData
-      if (!profileData || typeof profileData !== 'object') {
-          return res.status(400).json({ msg: 'Invalid profile data' });
-      }
+    // Validate profileData
+    if (!profileData || typeof profileData !== 'object') {
+      return res.status(400).json({ msg: 'Invalid profile data' });
+    }
 
-      // Update the user profile
-      const affectedRows = await ProfileModel.updateUserProfile(
-          userId,
-          profileData,
-          addresses,
-          workingHours,
-          languages,
-          mutuelles,
-          profileImage
-      );
+    // Validate other inputs (optional but recommended)
+    if (addresses && !Array.isArray(addresses)) {
+      return res.status(400).json({ msg: 'Invalid addresses data' });
+    }
+    if (workingHours && !Array.isArray(workingHours)) {
+      return res.status(400).json({ msg: 'Invalid working hours data' });
+    }
+    if (languages && !Array.isArray(languages)) {
+      return res.status(400).json({ msg: 'Invalid languages data' });
+    }
+    if (mutuelles && !Array.isArray(mutuelles)) {
+      return res.status(400).json({ msg: 'Invalid mutuelles data' });
+    }
 
-      if (affectedRows === 0) {
-          return res.status(404).json({ msg: 'User not found' });
-      }
+    // Update the user profile
+    const affectedRows = await ProfileModel.updateUserProfile(
+      userId,
+      profileData,
+      addresses,
+      workingHours,
+      languages,
+      mutuelles,
+      profileImage
+    );
 
-      res.status(200).json({ msg: 'Profile updated successfully' });
+    if (affectedRows === 0) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    res.status(200).json({ msg: 'Profile updated successfully' });
   } catch (err) {
-      console.error('Error updating profile:', err); // Log the error
-      res.status(500).json({ msg: 'Internal server error', error: err.message });
+    console.error('Error updating profile:', err.stack); // Log the full error stack trace
+    res.status(500).json({ msg: 'Internal server error', error: err.message });
   }
 };
 

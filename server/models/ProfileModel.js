@@ -30,7 +30,7 @@ class ProfileModel {
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
-
+  
       // Check the user's account type
       const [user] = await conn.query(
         "SELECT account_type FROM Users WHERE user_id = ?",
@@ -39,9 +39,18 @@ class ProfileModel {
       if (!user.length) {
         throw new Error("User not found");
       }
-
+  
       const accountType = user[0].account_type;
-
+  
+      // Update the email in the Users table
+      const { email } = profileData;
+      await conn.query(
+        `UPDATE Users 
+         SET email = ?
+         WHERE user_id = ?`,
+        [email, userId]
+      );
+  
       if (accountType === "doctor") {
         // Update Doctors table
         const {
@@ -54,8 +63,8 @@ class ProfileModel {
         } = profileData;
         await conn.query(
           `UPDATE Doctors 
-                     SET first_name = ?, last_name = ?, phone = ?, experience_years = ?, education_background = ?, professional_statement = ?, profile_image_url = ?
-                     WHERE user_id = ?`,
+           SET first_name = ?, last_name = ?, phone = ?, experience_years = ?, education_background = ?, professional_statement = ?, profile_image_url = ?
+           WHERE user_id = ?`,
           [
             first_name,
             last_name,
@@ -67,7 +76,7 @@ class ProfileModel {
             userId,
           ]
         );
-
+  
         // Update DoctorAddresses table
         for (const address of addresses) {
           const {
@@ -79,30 +88,30 @@ class ProfileModel {
           } = address;
           await conn.query(
             `UPDATE Addresses 
-                         SET street_address = ?, additional_details = ?, commune_id = ?
-                         WHERE address_id = ?`,
+             SET street_address = ?, additional_details = ?, commune_id = ?
+             WHERE address_id = ?`,
             [street_address, additional_details, commune_id, address_id]
           );
           await conn.query(
             `UPDATE DoctorAddresses 
-                         SET is_primary = ?
-                         WHERE doctor_id = (SELECT doctor_id FROM Doctors WHERE user_id = ?) AND address_id = ?`,
+             SET is_primary = ?
+             WHERE doctor_id = (SELECT doctor_id FROM Doctors WHERE user_id = ?) AND address_id = ?`,
             [is_primary, userId, address_id]
           );
         }
-
+  
         // Update DoctorWorkingHours table
         for (const workingHour of workingHours) {
           const { working_hours_id, day_of_week, start_time, end_time } =
             workingHour;
           await conn.query(
             `UPDATE DoctorWorkingHours 
-                         SET day_of_week = ?, start_time = ?, end_time = ?
-                         WHERE working_hours_id = ? AND doctor_id = (SELECT doctor_id FROM Doctors WHERE user_id = ?)`,
+             SET day_of_week = ?, start_time = ?, end_time = ?
+             WHERE working_hours_id = ? AND doctor_id = (SELECT doctor_id FROM Doctors WHERE user_id = ?)`,
             [day_of_week, start_time, end_time, working_hours_id, userId]
           );
         }
-
+  
         // Update DoctorLanguages table
         await conn.query(
           "DELETE FROM DoctorLanguages WHERE doctor_id = (SELECT doctor_id FROM Doctors WHERE user_id = ?)",
@@ -111,11 +120,11 @@ class ProfileModel {
         for (const language of languages) {
           await conn.query(
             `INSERT INTO DoctorLanguages (doctor_id, language_id)
-                         VALUES ((SELECT doctor_id FROM Doctors WHERE user_id = ?), ?)`,
+             VALUES ((SELECT doctor_id FROM Doctors WHERE user_id = ?), ?)`,
             [userId, language.language_id]
           );
         }
-
+  
         // Update DoctorMutuelles table
         await conn.query(
           "DELETE FROM DoctorMutuelles WHERE doctor_id = (SELECT doctor_id FROM Doctors WHERE user_id = ?)",
@@ -124,7 +133,7 @@ class ProfileModel {
         for (const mutuelle of mutuelles) {
           await conn.query(
             `INSERT INTO DoctorMutuelles (doctor_id, mutuelle_id)
-                         VALUES ((SELECT doctor_id FROM Doctors WHERE user_id = ?), ?)`,
+             VALUES ((SELECT doctor_id FROM Doctors WHERE user_id = ?), ?)`,
             [userId, mutuelle.mutuelle_id]
           );
         }
@@ -134,8 +143,8 @@ class ProfileModel {
           profileData;
         await conn.query(
           `UPDATE Patients 
-                     SET first_name = ?, last_name = ?, phone = ?, date_of_birth = ?, gender = ?, profile_image_url = ?
-                     WHERE user_id = ?`,
+           SET first_name = ?, last_name = ?, phone = ?, date_of_birth = ?, gender = ?, profile_image_url = ?
+           WHERE user_id = ?`,
           [
             first_name,
             last_name,
@@ -149,7 +158,7 @@ class ProfileModel {
       } else {
         throw new Error("Invalid account type");
       }
-
+  
       await conn.commit();
       return 1; // Success
     } catch (err) {

@@ -26,7 +26,17 @@ const getDoctorById = async (req, res) => {
     }
 };
 
+export const searchDoctorsHandler = async (req, res) => {
+    try {
+        const filters = req.query;
+        const doctors = await searchDoctors(filters);
+        res.json(doctors);
+    } catch (error) {
+        console.error('Error in searchDoctorsHandler:', error);
+        res.status(500).json({ error: 'An error occurred while searching for doctors.' });
+    }};
 export default {
     getAllDoctors,
-    getDoctorById
+    getDoctorById,
+    searchDoctorsHandler
 };

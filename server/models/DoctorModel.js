@@ -11,6 +11,10 @@ class DoctorModel {
         `);
         return rows;
     }
+    static async getById(id) {
+      const [rows] = await db.query('SELECT * FROM Doctors WHERE doctor_id = ?', [id]);
+      return rows[0];
+  }
 
 
     static async getDoctorById(doctorId) {
@@ -85,14 +89,18 @@ class DoctorModel {
         `, [id]);
         return doctor;
       }
-      async search({ specialtyId, mutuelleId, provinceId, consultationTypeId, languageId }) {
-        const [doctors] = await pool.execute(
-          'CALL SearchDoctors(?, ?, ?, ?, ?)',
-          [specialtyId || null, mutuelleId || null, provinceId || null, consultationTypeId || null, languageId || null]
+      static async searchDoctors(filters) {
+        const { specialtyId, mutuelleId, provinceId, consultationTypeId, languageId } = filters;
+
+        const [doctors] = await db.query(
+            'CALL SearchDoctors(?, ?, ?, ?, ?)',
+            [specialtyId || null, mutuelleId || null, provinceId || null, consultationTypeId || null, languageId || null]
         );
+
         return doctors[0]; // First element contains the result set
-      }
-    
+    }
+
+      
 }
 
 export default DoctorModel;

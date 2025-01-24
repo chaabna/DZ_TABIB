@@ -75,6 +75,7 @@
         registration_number VARCHAR(50) UNIQUE NOT NULL,
         specialty_id INT NOT NULL,
         phone VARCHAR(20),
+        max_appointments_per_day INT DEFAULT 10;
         experience_years INT CHECK (experience_years >= 0),
         education_background TEXT,
         professional_statement TEXT,
