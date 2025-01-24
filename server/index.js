@@ -7,6 +7,7 @@ import authRoutes from './routes/routerAuth.js';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import doctorRoutes from './routes/doctorRoutes.js';
+import profilerRoutes from './routes/profileroutes.js';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -20,6 +21,7 @@ app.use('/auth', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api', adminRoutes);
 app.use('/api', doctorRoutes);
+app.use('/api', profilerRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

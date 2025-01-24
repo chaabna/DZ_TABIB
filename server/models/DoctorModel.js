@@ -58,6 +58,41 @@ class DoctorModel {
             mutuelles
         };
     }
+    async getById(id) {
+        const [doctor] = await pool.execute(`
+          SELECT 
+            d.*,
+            s.specialty_name,
+            GROUP_CONCAT(DISTINCT l.language_name) as languages,
+            GROUP_CONCAT(DISTINCT m.mutuelle_name) as mutuelles,
+            GROUP_CONCAT(DISTINCT 
+              JSON_OBJECT(
+                'type', ct.type_name,
+                'rate', dct.hourly_rate,
+                'duration', dct.consultation_duration
+              )
+            ) as consultation_types
+          FROM Doctors d
+          LEFT JOIN Specialties s ON d.specialty_id = s.specialty_id
+          LEFT JOIN DoctorLanguages dl ON d.doctor_id = dl.doctor_id
+          LEFT JOIN Languages l ON dl.language_id = l.language_id
+          LEFT JOIN DoctorMutuelles dm ON d.doctor_id = dm.doctor_id
+          LEFT JOIN Mutuelles m ON dm.mutuelle_id = m.mutuelle_id
+          LEFT JOIN DoctorConsultationTypes dct ON d.doctor_id = dct.doctor_id
+          LEFT JOIN ConsultationTypes ct ON dct.consultation_type_id = ct.consultation_type_id
+          WHERE d.doctor_id = ?
+          GROUP BY d.doctor_id
+        `, [id]);
+        return doctor;
+      }
+      async search({ specialtyId, mutuelleId, provinceId, consultationTypeId, languageId }) {
+        const [doctors] = await pool.execute(
+          'CALL SearchDoctors(?, ?, ?, ?, ?)',
+          [specialtyId || null, mutuelleId || null, provinceId || null, consultationTypeId || null, languageId || null]
+        );
+        return doctors[0]; // First element contains the result set
+      }
+    
 }
 
 export default DoctorModel;
