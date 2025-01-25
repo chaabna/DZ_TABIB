@@ -16,27 +16,34 @@ class UserModel {
             
             await conn.beginTransaction();
             
+            // Insert into Users table
+            const [userResult] = await conn.query(
+                'INSERT INTO Users (username, email, password_hash, account_type) VALUES (?, ?, ?, ?)',
+                [userData.username, userData.email, hashedPassword, userData.account_type]
+            );
+            
+            const userId = userResult.insertId;
+
             if (userData.account_type === 'doctor') {
-                await conn.query('CALL RegisterDoctor(?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    [userData.username, userData.email, hashedPassword, userData.first_name, 
-                     userData.last_name, userData.registration_number, userData.specialty_id, 
-                     userData.experience_years, userData.professional_statement]
+                await conn.query(
+                    'INSERT INTO Doctors (user_id, first_name, last_name, registration_number, specialty_id, experience_years, professional_statement) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                    [userId, userData.first_name, userData.last_name, userData.registration_number, userData.specialty_id, userData.experience_years, userData.professional_statement]
                 );
             } else if (userData.account_type === 'patient') {
-                await conn.query('CALL RegisterPatient(?, ?, ?, ?, ?, ?, ?)',
-                    [userData.username, userData.email, hashedPassword, userData.first_name, 
-                     userData.last_name, userData.date_of_birth, userData.gender]
+                await conn.query(
+                    'INSERT INTO Patients (user_id, first_name, last_name, date_of_birth, gender) VALUES (?, ?, ?, ?, ?)',
+                    [userId, userData.first_name, userData.last_name, userData.date_of_birth, userData.gender]
                 );
             } else if (userData.account_type === 'admin') {
                 const admin_role = userData.admin_role || 'UserManager';
-                await conn.query('CALL RegisterAdmin(?, ?, ?, ?, ?, ?)',
-                    [userData.username, userData.email, hashedPassword, userData.first_name, 
-                     userData.last_name, admin_role]
+                await conn.query(
+                    'INSERT INTO Admins (user_id, first_name, last_name, role) VALUES (?, ?, ?, ?)',
+                    [userId, userData.first_name, userData.last_name, admin_role]
                 );
             }
             
             await conn.commit();
-            return { success: true, message: `${userData.account_type} registered successfully` };
+            return { success: true, message: `${userData.account_type} registered successfully`, userId };
         } catch (error) {
             await conn.rollback();
             throw error;
