@@ -2,6 +2,12 @@
 import express from "express";
 const router = express.Router();
 import adminFunction from "../controller/adminFunction.js";
+/**
+ * @swagger
+ * tags:
+ *   name: Admin
+ *   description: Admin management
+ */
 
 /**
  * @swagger
@@ -9,6 +15,7 @@ import adminFunction from "../controller/adminFunction.js";
  *   put:
  *     summary: Update another user's profile (Admin Only)
  *     description: Allows an admin to update another user's profile information.
+ *     tags: [Admin]
  *     parameters:
  *       - name: userId
  *         in: path
@@ -53,6 +60,7 @@ router.put("/profile/admin/:userId", adminFunction.updateOtherProfile);
  *   delete:
  *     summary: Delete another user's profile (Admin Only)
  *     description: Allows an admin to delete another user's profile.
+ *     tags: [Admin]
  *     parameters:
  *       - name: userId
  *         in: path
@@ -88,6 +96,7 @@ router.delete("/profile/admin/:userId", adminFunction.deleteOtherProfile);
  *   post:
  *     summary: Suspend a user (Admin Only)
  *     description: Allows an admin to suspend a user account.
+ *     tags: [Admin]
  *     requestBody:
  *       required: true
  *       content:
@@ -122,6 +131,7 @@ router.post("/user/suspend", adminFunction.suspendUser);
  *   post:
  *     summary: Unsuspend a user (Admin Only)
  *     description: Allows an admin to unsuspend a user account.
+ *     tags: [Admin]
  *     requestBody:
  *       required: true
  *       content:

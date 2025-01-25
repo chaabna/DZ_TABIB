@@ -11,6 +11,41 @@ import {
 const router = express.Router();
 
 // Define routes
+/**
+ * @swagger
+ * tags:
+ *   name: Reviews
+ *   description: API for managing medical reviews
+ */
+
+/**
+ * @swagger
+ * /reviews:
+ *   get:
+ *     summary: Get all reviews
+ *     description: Retrieve a list of all reviews from the database.
+ *     tags: [Reviews]
+ *     responses:
+ *       200:
+ *         description: A list of reviews.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Review'
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message.
+ */
+
 router.get('/', getAllReviews);
 /**
  * @swagger
@@ -18,6 +53,7 @@ router.get('/', getAllReviews);
  *   post:
  *     summary: Create a new review
  *     description: Create a new review for a doctor.
+ *     tags: [Reviews]
  *     requestBody:
  *       required: true
  *       content:
@@ -65,10 +101,11 @@ router.get('/', getAllReviews);
 router.post('/', createReview);
 /**
  * @swagger
- * /reviews:
+ *  /reviews:
  *   get:
  *     summary: Get all reviews
  *     description: Retrieve a list of all reviews.
+ *     tags: [Reviews]
  *     responses:
  *       200:
  *         description: A list of reviews.
@@ -104,6 +141,7 @@ router.get('/:id', getReviewById);
  *   put:
  *     summary: Update a review
  *     description: Update an existing review by its ID.
+ *     tags: [Reviews]
  *     parameters:
  *       - in: path
  *         name: id
@@ -143,6 +181,7 @@ router.put('/:id', updateReview);
  *   delete:
  *     summary: Delete a review
  *     description: Delete an existing review by its ID.
+ *     tags: [Reviews]
  *     parameters:
  *       - in: path
  *         name: id

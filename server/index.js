@@ -11,6 +11,8 @@ import profilerRoutes from './routes/profileroutes.js';
 import appointmentRoutes from './routes/appointments.js';
 import reviewRoutes from './routes/reviews.js';
 import swaggerDocs from './swagger.js'; // Import Swagger configuration
+import YAML from 'yamljs';
+import path from 'path';
 
 const app = express();
 const PORT = process.env.PORT || 5000;

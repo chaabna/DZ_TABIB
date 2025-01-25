@@ -1,0 +1,90 @@
+openapi: 3.0.0
+info:
+  title: DZ-Tabib Medical Directory API
+  description: API for managing and retrieving user profiles in the DZ-Tabib medical directory.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+paths:
+  /profile/{userId}:
+    get:
+      summary: Retrieve a user's profile by their user ID.
+      description: |
+        This endpoint retrieves the profile information of a user based on their `user_id`. 
+        The response includes details from the `Users` table and the corresponding `Patients`, `Doctors`, or `Admins` table depending on the user's account type.
+      parameters:
+        - name: userId
+          in: path
+          description: The ID of the user whose profile is to be retrieved.
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Successful operation. Returns the user's profile.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: integer
+                    description: The unique identifier for the user.
+                  username:
+                    type: string
+                    description: The username of the user.
+                  email:
+                    type: string
+                    description: The email address of the user.
+                  password_hash:
+                    type: string
+                    description: The hashed password of the user.
+                  reset_password_token:
+                    type: string
+                    description: The token used for password reset (if applicable).
+                  reset_password_expires:
+                    type: string
+                    format: date-time
+                    description: The expiration date of the password reset token.
+                  account_type:
+                    type: string
+                    enum: ['patient', 'doctor', 'admin']
+                    description: The type of account (patient, doctor, or admin).
+                  is_suspended:
+                    type: boolean
+                    description: Indicates whether the user's account is suspended.
+                  suspension_reason:
+                    type: string
+                    description: The reason for the user's account suspension (if applicable).
+                  suspended_at:
+                    type: string
+                    format: date-time
+                    description: The timestamp when the user's account was suspended.
+                  first_name:
+                    type: string
+                    description: The first name of the user (from Patients, Doctors, or Admins table).
+                  last_name:
+                    type: string
+                    description: The last name of the user (from Patients, Doctors, or Admins table).
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    description: Error message indicating that the user was not found.
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    description: Error message indicating an internal server error.

@@ -1,6 +1,8 @@
 import express from 'express';
 const router = express.Router();
 import userController from '../controller/userFunctions.js';
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
 
 /**
  * @swagger
@@ -11,10 +13,10 @@ import userController from '../controller/userFunctions.js';
 
 /**
  * @swagger
- * /profile/{userId}:
+ *  /api/profile/{userId}:
  *   get:
  *     summary: Get a user's profile by ID
- *     description: Retrieve a user's profile by their ID.
+ *     description: Retrieve a user's profile by their ID, including their first name and last name.
  *     tags: [Profile]
  *     parameters:
  *       - in: path
@@ -33,19 +35,10 @@ import userController from '../controller/userFunctions.js';
  *               properties:
  *                 user_id:
  *                   type: integer
- *                 username:
+ *                 first_name:
  *                   type: string
- *                 email:
+ *                 last_name:
  *                   type: string
- *                 account_type:
- *                   type: string
- *                 is_suspended:
- *                   type: boolean
- *                 suspension_reason:
- *                   type: string
- *                 suspended_at:
- *                   type: string
- *                   format: date-time
  *       404:
  *         description: User not found.
  *       500:
@@ -55,7 +48,7 @@ router.get('/profile/:userId', userController.getProfile);
 
 /**
  * @swagger
- * /profile/{userId}:
+ * /api/profile/{userId}:
  *   put:
  *     summary: Update a user's profile
  *     description: Update a user's profile with the provided data.
@@ -184,7 +177,7 @@ router.put('/profile/:userId', userController.updateProfile);
 
 /**
  * @swagger
- * /profile/{userId}:
+ *  /api/profile/{userId}:
  *   delete:
  *     summary: Delete a user's profile by ID
  *     description: Delete a user's profile by their ID.
@@ -208,7 +201,7 @@ router.delete('/profile/:userId', userController.deleteProfile);
 
 /**
  * @swagger
- * /profile/password/{userId}:
+ *   /api/profile/password/{userId}:
  *   put:
  *     summary: Change a user's password
  *     description: Change a user's password by providing the old password and the new password.
@@ -248,5 +241,7 @@ router.delete('/profile/:userId', userController.deleteProfile);
  *         description: Internal server error.
  */
 router.put('/profile/password/:userId', userController.changePassword);
+
+
 
 export default router;

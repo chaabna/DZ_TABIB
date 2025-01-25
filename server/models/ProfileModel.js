@@ -180,16 +180,37 @@ class ProfileModel {
 
   // Delete user by ID
   static async deleteUserById(userId) {
-    // Delete related records first (e.g., Patients, Doctors)
-    await db.query("DELETE FROM Patients WHERE user_id = ?", [userId]);
-    await db.query("DELETE FROM Doctors WHERE user_id = ?", [userId]);
+    // Start a transaction to ensure atomicity
+    await db.query("START TRANSACTION");
 
-    // Delete the user
-    const [result] = await db.query("DELETE FROM Users WHERE user_id = ?", [
-      userId,
-    ]);
-    return result.affectedRows;
-  }
+    try {
+        // Delete related records in dependent tables
+        await db.query("DELETE FROM Reviews WHERE patient_id IN (SELECT patient_id FROM Patients WHERE user_id = ?)", [userId]);
+        await db.query("DELETE FROM Reviews WHERE doctor_id IN (SELECT doctor_id FROM Doctors WHERE user_id = ?)", [userId]);
+        await db.query("DELETE FROM Appointments WHERE patient_id IN (SELECT patient_id FROM Patients WHERE user_id = ?)", [userId]);
+        await db.query("DELETE FROM Appointments WHERE doctor_id IN (SELECT doctor_id FROM Doctors WHERE user_id = ?)", [userId]);
+        await db.query("DELETE FROM DoctorWorkingHours WHERE doctor_id IN (SELECT doctor_id FROM Doctors WHERE user_id = ?)", [userId]);
+        await db.query("DELETE FROM DoctorConsultationTypes WHERE doctor_id IN (SELECT doctor_id FROM Doctors WHERE user_id = ?)", [userId]);
+        await db.query("DELETE FROM DoctorLanguages WHERE doctor_id IN (SELECT doctor_id FROM Doctors WHERE user_id = ?)", [userId]);
+        await db.query("DELETE FROM DoctorMutuelles WHERE doctor_id IN (SELECT doctor_id FROM Doctors WHERE user_id = ?)", [userId]);
+        await db.query("DELETE FROM DoctorAddresses WHERE doctor_id IN (SELECT doctor_id FROM Doctors WHERE user_id = ?)", [userId]);
+        await db.query("DELETE FROM Patients WHERE user_id = ?", [userId]);
+        await db.query("DELETE FROM Doctors WHERE user_id = ?", [userId]);
+        await db.query("DELETE FROM Admins WHERE user_id = ?", [userId]);
+
+        // Finally, delete the user
+        const [result] = await db.query("DELETE FROM Users WHERE user_id = ?", [userId]);
+
+        // Commit the transaction
+        await db.query("COMMIT");
+
+        return result.affectedRows;
+    } catch (error) {
+        // Rollback the transaction in case of any error
+        await db.query("ROLLBACK");
+        throw error; // Re-throw the error to handle it in the calling function
+    }
+}
 
   // Search users by name or email
   static async searchUsers(name) {
