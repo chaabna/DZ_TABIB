@@ -3,11 +3,20 @@ import db from "../db/database.js";
 class ProfileModel {
   // Get user by ID
   static async getUserById(userId) {
-    const [user] = await db.query("SELECT * FROM Users WHERE user_id = ?", [
-      userId,
-    ]);
+    const [user] = await db.query(`
+        SELECT 
+            u.*, 
+            COALESCE(p.first_name, d.first_name, a.first_name) AS first_name, 
+            COALESCE(p.last_name, d.last_name, a.last_name) AS last_name
+        FROM Users u
+        LEFT JOIN Patients p ON u.user_id = p.user_id
+        LEFT JOIN Doctors d ON u.user_id = d.user_id
+        LEFT JOIN Admins a ON u.user_id = a.user_id
+        WHERE u.user_id = ?
+    `, [userId]);
+
     return user[0];
-  }
+}
 
   // Get all users by account type (e.g., patient, doctor)
   static async getUsersByAccountType(accountType) {
