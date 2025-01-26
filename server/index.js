@@ -3,6 +3,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import authRoutes from './routes/routerAuth.js';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
@@ -16,6 +17,11 @@ import path from 'path';
 
 const app = express();
 const PORT = 5000;
+
+app.use(cors({
+    origin: 'http://localhost:3000', // Your frontend URL
+    credentials: true
+  }));
 
 // Middleware
 app.use(bodyParser.json());
